@@ -11,8 +11,8 @@ public class CannaGrowApp extends JFrame {
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField nameField, typeField, stockField, priceField;
-    private static final String PRODUCT_FILE_PATH = "productos.csv"; // Ruta del archivo de productos
-    private static final String SALES_HISTORY_FILE_PATH = "historial_ventas.csv"; // Ruta del archivo de ventas
+    private static final String FILE_PATH = "productos.csv"; // Ruta del archivo
+    private ArrayList<String> cobrosList = new ArrayList<>(); // Lista para registros de cobros
 
     public CannaGrowApp() {
         setTitle("CannaGrow - Gestión de Productos");
@@ -57,7 +57,7 @@ public class CannaGrowApp extends JFrame {
         priceField = new JTextField();
         inputPanel.add(priceField);
 
-        // Botones para agregar, eliminar, registrar cobros y ver historial de ventas
+        // Botones para agregar, eliminar y registrar cobros
         JButton addButton = new JButton("Agregar Producto");
         addButton.setBackground(new Color(60, 179, 113));
         addButton.setForeground(Color.WHITE);
@@ -67,6 +67,7 @@ public class CannaGrowApp extends JFrame {
                 agregarProducto();
             }
         });
+        
 
         JButton deleteButton = new JButton("Eliminar Producto");
         deleteButton.setBackground(new Color(255, 69, 0));
@@ -88,27 +89,123 @@ public class CannaGrowApp extends JFrame {
             }
         });
 
-        JButton historialButton = new JButton("Ver Historial de Ventas");
-        historialButton.setBackground(new Color(255, 215, 0));
-        historialButton.setForeground(Color.BLACK);
-        historialButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                verHistorialDeVentas();
-            }
-        });
-
         inputPanel.add(addButton);
         inputPanel.add(deleteButton);
         inputPanel.add(cobrarButton);
-        inputPanel.add(historialButton);
 
         mainPanel.add(inputPanel, BorderLayout.SOUTH);
+        // Dentro del constructor de la clase CannaGrowApp, añade un botón para editar:
+        JButton editButton = new JButton("Editar Producto");
+        editButton.setBackground(new Color(255, 165, 0)); // Naranja
+        editButton.setForeground(Color.WHITE);
+        editButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                editarProducto();
+            }
+        });
+        JButton viewHistoryButton = new JButton("Ver Historial de Ventas");
+        viewHistoryButton.setBackground(new Color(30, 144, 255)); // Azul
+        viewHistoryButton.setForeground(Color.WHITE);
+        viewHistoryButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                verHistorialVentas();
+            }
+        });
         
+        inputPanel.add(viewHistoryButton); // Añadir el botón al panel de entrada
+        
+
+
+
+
+inputPanel.add(editButton); // Añadir el botón al panel de entrada de datos
         // Cargar productos desde el archivo al iniciar la aplicación
         cargarProductos();
     }
+    private void editarProducto() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Por favor, selecciona un producto para editar.");
+            return;
+        }
+    
+        // Obtener valores actuales del producto seleccionado
+        String nombreActual = tableModel.getValueAt(selectedRow, 0).toString();
+        String tipoActual = tableModel.getValueAt(selectedRow, 1).toString();
+        int stockActual = Integer.parseInt(tableModel.getValueAt(selectedRow, 2).toString());
+        double precioActual = Double.parseDouble(tableModel.getValueAt(selectedRow, 3).toString());
+    
+        // Campos para editar
+        JTextField nombreField = new JTextField(nombreActual);
+        JTextField tipoField = new JTextField(tipoActual);
+        JTextField stockField = new JTextField(String.valueOf(stockActual));
+        JTextField precioField = new JTextField(String.valueOf(precioActual));
+    
+        JPanel editPanel = new JPanel(new GridLayout(4, 2, 10, 10));
+        editPanel.add(new JLabel("Nombre:"));
+        editPanel.add(nombreField);
+        editPanel.add(new JLabel("Tipo:"));
+        editPanel.add(tipoField);
+        editPanel.add(new JLabel("Stock:"));
+        editPanel.add(stockField);
+        editPanel.add(new JLabel("Precio:"));
+        editPanel.add(precioField);
+    
+        int result = JOptionPane.showConfirmDialog(this, editPanel, "Editar Producto", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                String nuevoNombre = nombreField.getText();
+                String nuevoTipo = tipoField.getText();
+                int nuevoStock = Integer.parseInt(stockField.getText());
+                double nuevoPrecio = Double.parseDouble(precioField.getText());
+    
+                // Actualizar valores en la tabla
+                tableModel.setValueAt(nuevoNombre, selectedRow, 0);
+                tableModel.setValueAt(nuevoTipo, selectedRow, 1);
+                tableModel.setValueAt(nuevoStock, selectedRow, 2);
+                tableModel.setValueAt(nuevoPrecio, selectedRow, 3);
+    
+                guardarProductos(); // Guardar los cambios en el archivo
+                JOptionPane.showMessageDialog(this, "Producto actualizado exitosamente.");
+    
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Error: Stock y precio deben ser numéricos.");
+            }
+        }
+    }
 
+
+
+
+    private void verHistorialVentas() {
+        if (cobrosList.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay registros de ventas en el historial.");
+            return;
+        }
+    
+        // Crear un panel para mostrar el historial
+        JPanel historyPanel = new JPanel(new BorderLayout());
+        JTextArea historyArea = new JTextArea();
+        historyArea.setEditable(false);
+        historyArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+    
+        // Cargar las ventas en el área de texto
+        StringBuilder historial = new StringBuilder();
+        for (String registro : cobrosList) {
+            historial.append(registro).append("\n");
+        }
+        historyArea.setText(historial.toString());
+    
+        // Añadir el área de texto al panel con un scroll
+        JScrollPane scrollPane = new JScrollPane(historyArea);
+        historyPanel.add(scrollPane, BorderLayout.CENTER);
+    
+        // Mostrar el cuadro de diálogo
+        JOptionPane.showMessageDialog(this, historyPanel, "Historial de Ventas", JOptionPane.INFORMATION_MESSAGE);
+    }
+    
     private void agregarProducto() {
         String nombre = nameField.getText();
         String tipo = typeField.getText();
@@ -156,7 +253,7 @@ public class CannaGrowApp extends JFrame {
 
     // Cargar productos desde el archivo
     private void cargarProductos() {
-        try (Scanner scanner = new Scanner(new File(PRODUCT_FILE_PATH))) {
+        try (Scanner scanner = new Scanner(new File(FILE_PATH))) {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 String[] data = line.split(",");
@@ -175,7 +272,7 @@ public class CannaGrowApp extends JFrame {
 
     // Guardar productos en el archivo
     private void guardarProductos() {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(PRODUCT_FILE_PATH))) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_PATH))) {
             for (int i = 0; i < tableModel.getRowCount(); i++) {
                 String nombre = tableModel.getValueAt(i, 0).toString();
                 String tipo = tableModel.getValueAt(i, 1).toString();
@@ -230,49 +327,14 @@ public class CannaGrowApp extends JFrame {
                 tableModel.setValueAt(nuevoStock, selectedRow, 2); // Actualizar el stock en la tabla
                 guardarProductos(); // Guardar cambios en archivo
 
-                String registroCobro = cliente + "," + nombreProducto + "," + cantidad + "," + montoTotal + "," + metodoPago;
-                guardarVentaEnHistorial(registroCobro); // Guardar el registro en el historial de ventas
-
+                String registroCobro = "Cliente: " + cliente + ", Producto: " + nombreProducto + ", Cantidad: " + cantidad + ", Monto: €" + montoTotal + ", Método: " + metodoPago;
+                cobrosList.add(registroCobro); // Añadir a la lista de cobros
                 JOptionPane.showMessageDialog(this, "Cobro registrado:\n" + registroCobro);
 
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(this, "Error: La cantidad debe ser un número entero.");
             }
         }
-    }
-
-    // Guardar un registro de venta en el archivo de historial
-    private void guardarVentaEnHistorial(String registro) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(SALES_HISTORY_FILE_PATH, true))) {
-            writer.println(registro);
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Error al guardar en el historial de ventas.");
-        }
-    }
-
-    // Ver historial de ventas
-    private void verHistorialDeVentas() {
-        JDialog historialDialog = new JDialog(this, "Historial de Ventas", true);
-        historialDialog.setSize(600, 400);
-        historialDialog.setLocationRelativeTo(this);
-
-        DefaultTableModel historialModel = new DefaultTableModel(new String[]{"Cliente", "Producto", "Cantidad", "Monto", "Método de Pago"}, 0);
-        JTable historialTable = new JTable(historialModel);
-
-        try (Scanner scanner = new Scanner(new File(SALES_HISTORY_FILE_PATH))) {
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                String[] data = line.split(",");
-                if (data.length == 5) {
-                    historialModel.addRow(data);
-                }
-            }
-        } catch (FileNotFoundException e) {
-            JOptionPane.showMessageDialog(this, "No hay historial de ventas disponible.");
-        }
-
-        historialDialog.add(new JScrollPane(historialTable), BorderLayout.CENTER);
-        historialDialog.setVisible(true);
     }
 
     public static void main(String[] args) {
