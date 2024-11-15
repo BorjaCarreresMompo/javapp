@@ -16,7 +16,7 @@ public class CannaGrowApp extends JFrame {
 
     public CannaGrowApp() {
         setTitle("CannaGrow - Gestión de Productos");
-        setSize(800, 600);
+        setSize(1000, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
