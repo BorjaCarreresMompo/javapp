@@ -1,2 +1,5 @@
-lyubo,Blue,6,60.0,Efectivo
-Vera,Red,5,50.0,Efectivo
+Producto: Pepe, Tipo: jose, Cantidad: 1, Total: $1.0
+Producto: Pepe, Tipo: jose, Cantidad: 2, Total: $2.0
+Cliente: Pau, Producto: Pepe, Cantidad: 10, Total: $10.0, Método de Pago: efectivo
+Cliente: Pepe, Producto: Pepe, Cantidad: 2, Total: $2.0, Método de Pago: tarjeta
+Cliente: jose, Producto: Pepe, Cantidad: 2, Total: $6.0, Método de Pago: efectivo

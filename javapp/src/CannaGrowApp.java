@@ -11,36 +11,33 @@ public class CannaGrowApp extends JFrame {
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField nameField, typeField, stockField, priceField;
-    private static final String FILE_PATH = "productos.csv"; // Ruta del archivo
-    private ArrayList<String> cobrosList = new ArrayList<>(); // Lista para registros de cobros
+    private static final String PRODUCTOS_FILE_PATH = "productos.csv";
+    private static final String VENTAS_FILE_PATH = "historial_ventas.csv";
+    private ArrayList<String> cobrosList = new ArrayList<>();
 
     public CannaGrowApp() {
         setTitle("CannaGrow - Gestión de Productos");
         setSize(1000, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        
-        // Panel principal con fondo temático
+
         JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(new Color(34, 139, 34)); // Verde oscuro
+        mainPanel.setBackground(new Color(34, 139, 34));
         add(mainPanel);
 
-        // Encabezado
         JLabel headerLabel = new JLabel("Gestión de Productos CannaGrow", JLabel.CENTER);
         headerLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        headerLabel.setForeground(new Color(255, 250, 240)); // Blanco crema
+        headerLabel.setForeground(new Color(255, 250, 240));
         mainPanel.add(headerLabel, BorderLayout.NORTH);
 
-        // Modelo de la tabla
         tableModel = new DefaultTableModel(new String[]{"Nombre", "Tipo", "Stock", "Precio"}, 0);
         table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
 
-        // Panel de entrada de datos
-        JPanel inputPanel = new JPanel(new GridLayout(5, 2, 10, 10));
-        inputPanel.setBackground(new Color(50, 205, 50)); // Verde claro
-        
+        JPanel inputPanel = new JPanel(new GridLayout(6, 2, 10, 10));
+        inputPanel.setBackground(new Color(50, 205, 50));
+
         inputPanel.add(new JLabel("Nombre:"));
         nameField = new JTextField();
         inputPanel.add(nameField);
@@ -57,174 +54,42 @@ public class CannaGrowApp extends JFrame {
         priceField = new JTextField();
         inputPanel.add(priceField);
 
-        // Botones para agregar, eliminar y registrar cobros
         JButton addButton = new JButton("Agregar Producto");
-        addButton.setBackground(new Color(60, 179, 113));
-        addButton.setForeground(Color.WHITE);
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                agregarProducto();
-            }
-        });
-        
+        addButton.addActionListener(e -> agregarProducto());
+        inputPanel.add(addButton);
 
         JButton deleteButton = new JButton("Eliminar Producto");
-        deleteButton.setBackground(new Color(255, 69, 0));
-        deleteButton.setForeground(Color.WHITE);
-        deleteButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                eliminarProducto();
-            }
-        });
-        
-        JButton cobrarButton = new JButton("Registrar Cobro");
-        cobrarButton.setBackground(new Color(100, 149, 237));
-        cobrarButton.setForeground(Color.WHITE);
-        cobrarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                registrarCobro();
-            }
-        });
-
-        inputPanel.add(addButton);
+        deleteButton.addActionListener(e -> eliminarProducto());
         inputPanel.add(deleteButton);
+
+        JButton editButton = new JButton("Editar Producto");
+        editButton.addActionListener(e -> editarProducto());
+        inputPanel.add(editButton);
+
+        JButton cobrarButton = new JButton("Registrar Cobro");
+        cobrarButton.addActionListener(e -> registrarCobro());
         inputPanel.add(cobrarButton);
 
-        mainPanel.add(inputPanel, BorderLayout.SOUTH);
-        // Dentro del constructor de la clase CannaGrowApp, añade un botón para editar:
-        JButton editButton = new JButton("Editar Producto");
-        editButton.setBackground(new Color(255, 165, 0)); // Naranja
-        editButton.setForeground(Color.WHITE);
-        editButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                editarProducto();
-            }
-        });
         JButton viewHistoryButton = new JButton("Ver Historial de Ventas");
-        viewHistoryButton.setBackground(new Color(30, 144, 255)); // Azul
-        viewHistoryButton.setForeground(Color.WHITE);
-        viewHistoryButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                verHistorialVentas();
-            }
-        });
-        
-        inputPanel.add(viewHistoryButton); // Añadir el botón al panel de entrada
-        
+        viewHistoryButton.addActionListener(e -> verHistorialVentas());
+        inputPanel.add(viewHistoryButton);
 
+        mainPanel.add(inputPanel, BorderLayout.SOUTH);
 
-
-
-inputPanel.add(editButton); // Añadir el botón al panel de entrada de datos
-        // Cargar productos desde el archivo al iniciar la aplicación
         cargarProductos();
-    }
-    private void editarProducto() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Por favor, selecciona un producto para editar.");
-            return;
-        }
-    
-        // Obtener valores actuales del producto seleccionado
-        String nombreActual = tableModel.getValueAt(selectedRow, 0).toString();
-        String tipoActual = tableModel.getValueAt(selectedRow, 1).toString();
-        int stockActual = Integer.parseInt(tableModel.getValueAt(selectedRow, 2).toString());
-        double precioActual = Double.parseDouble(tableModel.getValueAt(selectedRow, 3).toString());
-    
-        // Campos para editar
-        JTextField nombreField = new JTextField(nombreActual);
-        JTextField tipoField = new JTextField(tipoActual);
-        JTextField stockField = new JTextField(String.valueOf(stockActual));
-        JTextField precioField = new JTextField(String.valueOf(precioActual));
-    
-        JPanel editPanel = new JPanel(new GridLayout(4, 2, 10, 10));
-        editPanel.add(new JLabel("Nombre:"));
-        editPanel.add(nombreField);
-        editPanel.add(new JLabel("Tipo:"));
-        editPanel.add(tipoField);
-        editPanel.add(new JLabel("Stock:"));
-        editPanel.add(stockField);
-        editPanel.add(new JLabel("Precio:"));
-        editPanel.add(precioField);
-    
-        int result = JOptionPane.showConfirmDialog(this, editPanel, "Editar Producto", JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.OK_OPTION) {
-            try {
-                String nuevoNombre = nombreField.getText();
-                String nuevoTipo = tipoField.getText();
-                int nuevoStock = Integer.parseInt(stockField.getText());
-                double nuevoPrecio = Double.parseDouble(precioField.getText());
-    
-                // Actualizar valores en la tabla
-                tableModel.setValueAt(nuevoNombre, selectedRow, 0);
-                tableModel.setValueAt(nuevoTipo, selectedRow, 1);
-                tableModel.setValueAt(nuevoStock, selectedRow, 2);
-                tableModel.setValueAt(nuevoPrecio, selectedRow, 3);
-    
-                guardarProductos(); // Guardar los cambios en el archivo
-                JOptionPane.showMessageDialog(this, "Producto actualizado exitosamente.");
-    
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Error: Stock y precio deben ser numéricos.");
-            }
-        }
+        cargarHistorialVentas();
     }
 
-
-
-
-    private void verHistorialVentas() {
-        if (cobrosList.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No hay registros de ventas en el historial.");
-            return;
-        }
-    
-        // Crear un panel para mostrar el historial
-        JPanel historyPanel = new JPanel(new BorderLayout());
-        JTextArea historyArea = new JTextArea();
-        historyArea.setEditable(false);
-        historyArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-    
-        // Cargar las ventas en el área de texto
-        StringBuilder historial = new StringBuilder();
-        for (String registro : cobrosList) {
-            historial.append(registro).append("\n");
-        }
-        historyArea.setText(historial.toString());
-    
-        // Añadir el área de texto al panel con un scroll
-        JScrollPane scrollPane = new JScrollPane(historyArea);
-        historyPanel.add(scrollPane, BorderLayout.CENTER);
-    
-        // Mostrar el cuadro de diálogo
-        JOptionPane.showMessageDialog(this, historyPanel, "Historial de Ventas", JOptionPane.INFORMATION_MESSAGE);
-    }
-    
     private void agregarProducto() {
         String nombre = nameField.getText();
         String tipo = typeField.getText();
-        int stock;
-        double precio;
-
         try {
-            stock = Integer.parseInt(stockField.getText());
-            precio = Double.parseDouble(priceField.getText());
-
-            // Añadir los datos a la tabla
+            int stock = Integer.parseInt(stockField.getText());
+            double precio = Double.parseDouble(priceField.getText());
             tableModel.addRow(new Object[]{nombre, tipo, stock, precio});
             limpiarCampos();
-            
-            // Guardar en archivo
             guardarProductos();
-
             JOptionPane.showMessageDialog(this, "Producto agregado exitosamente.");
-
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Error: Stock y precio deben ser numéricos.");
         }
@@ -234,14 +99,107 @@ inputPanel.add(editButton); // Añadir el botón al panel de entrada de datos
         int selectedRow = table.getSelectedRow();
         if (selectedRow != -1) {
             tableModel.removeRow(selectedRow);
-            
-            // Guardar cambios en archivo
             guardarProductos();
-
             JOptionPane.showMessageDialog(this, "Producto eliminado.");
         } else {
             JOptionPane.showMessageDialog(this, "Selecciona un producto para eliminar.");
         }
+    }
+
+    private void editarProducto() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un producto para editar.");
+            return;
+        }
+
+        JTextField nombreField = new JTextField(tableModel.getValueAt(selectedRow, 0).toString());
+        JTextField tipoField = new JTextField(tableModel.getValueAt(selectedRow, 1).toString());
+        JTextField stockField = new JTextField(tableModel.getValueAt(selectedRow, 2).toString());
+        JTextField precioField = new JTextField(tableModel.getValueAt(selectedRow, 3).toString());
+
+        JPanel editPanel = new JPanel(new GridLayout(4, 2, 10, 10));
+        editPanel.add(new JLabel("Nombre:"));
+        editPanel.add(nombreField);
+        editPanel.add(new JLabel("Tipo:"));
+        editPanel.add(tipoField);
+        editPanel.add(new JLabel("Stock:"));
+        editPanel.add(stockField);
+        editPanel.add(new JLabel("Precio:"));
+        editPanel.add(precioField);
+
+        int result = JOptionPane.showConfirmDialog(this, editPanel, "Editar Producto", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                tableModel.setValueAt(nombreField.getText(), selectedRow, 0);
+                tableModel.setValueAt(tipoField.getText(), selectedRow, 1);
+                tableModel.setValueAt(Integer.parseInt(stockField.getText()), selectedRow, 2);
+                tableModel.setValueAt(Double.parseDouble(precioField.getText()), selectedRow, 3);
+                guardarProductos();
+                JOptionPane.showMessageDialog(this, "Producto actualizado exitosamente.");
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Error: Stock y precio deben ser numéricos.");
+            }
+        }
+    }
+
+    private void registrarCobro() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un producto para registrar el cobro.");
+            return;
+        }
+
+        String nombreProducto = tableModel.getValueAt(selectedRow, 0).toString();
+        int stockActual = Integer.parseInt(tableModel.getValueAt(selectedRow, 2).toString());
+        double precioUnitario = Double.parseDouble(tableModel.getValueAt(selectedRow, 3).toString());
+
+        JPanel cobroPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        JTextField clienteField = new JTextField();
+        JTextField cantidadField = new JTextField();
+        JTextField metodoPagoField = new JTextField();
+
+        cobroPanel.add(new JLabel("Nombre del cliente:"));
+        cobroPanel.add(clienteField);
+        cobroPanel.add(new JLabel("Cantidad a cobrar:"));
+        cobroPanel.add(cantidadField);
+        cobroPanel.add(new JLabel("Método de pago:"));
+        cobroPanel.add(metodoPagoField);
+
+        int result = JOptionPane.showConfirmDialog(this, cobroPanel, "Registrar Cobro", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                String cliente = clienteField.getText();
+                int cantidad = Integer.parseInt(cantidadField.getText());
+                String metodoPago = metodoPagoField.getText();
+
+                if (cantidad > stockActual) {
+                    JOptionPane.showMessageDialog(this, "No hay suficiente stock disponible.");
+                    return;
+                }
+
+                double total = cantidad * precioUnitario;
+                int nuevoStock = stockActual - cantidad;
+                tableModel.setValueAt(nuevoStock, selectedRow, 2);
+
+                String registro = "Cliente: " + cliente + ", Producto: " + nombreProducto + ", Cantidad: " + cantidad
+                        + ", Total: $" + total + ", Método de Pago: " + metodoPago;
+                cobrosList.add(registro);
+                guardarHistorialVentas();
+                guardarProductos();
+                JOptionPane.showMessageDialog(this, "Cobro registrado:\n" + registro);
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Cantidad debe ser un número válido.");
+            }
+        }
+    }
+
+    private void verHistorialVentas() {
+        JTextArea textArea = new JTextArea();
+        textArea.setEditable(false);
+        cobrosList.forEach(cobro -> textArea.append(cobro + "\n"));
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        JOptionPane.showMessageDialog(this, scrollPane, "Historial de Ventas", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void limpiarCampos() {
@@ -251,96 +209,49 @@ inputPanel.add(editButton); // Añadir el botón al panel de entrada de datos
         priceField.setText("");
     }
 
-    // Cargar productos desde el archivo
     private void cargarProductos() {
-        try (Scanner scanner = new Scanner(new File(FILE_PATH))) {
+        try (Scanner scanner = new Scanner(new File(PRODUCTOS_FILE_PATH))) {
             while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                String[] data = line.split(",");
-                if (data.length == 4) {
-                    String nombre = data[0];
-                    String tipo = data[1];
-                    int stock = Integer.parseInt(data[2]);
-                    double precio = Double.parseDouble(data[3]);
-                    tableModel.addRow(new Object[]{nombre, tipo, stock, precio});
-                }
+                String[] data = scanner.nextLine().split(",");
+                tableModel.addRow(new Object[]{data[0], data[1], Integer.parseInt(data[2]), Double.parseDouble(data[3])});
             }
         } catch (FileNotFoundException e) {
-            System.out.println("Archivo de productos no encontrado. Se creará uno nuevo al guardar.");
+            System.out.println("Archivo de productos no encontrado.");
         }
     }
 
-    // Guardar productos en el archivo
     private void guardarProductos() {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_PATH))) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(PRODUCTOS_FILE_PATH))) {
             for (int i = 0; i < tableModel.getRowCount(); i++) {
-                String nombre = tableModel.getValueAt(i, 0).toString();
-                String tipo = tableModel.getValueAt(i, 1).toString();
-                int stock = Integer.parseInt(tableModel.getValueAt(i, 2).toString());
-                double precio = Double.parseDouble(tableModel.getValueAt(i, 3).toString());
-                writer.println(nombre + "," + tipo + "," + stock + "," + precio);
+                writer.println(tableModel.getValueAt(i, 0) + "," + tableModel.getValueAt(i, 1) + ","
+                        + tableModel.getValueAt(i, 2) + "," + tableModel.getValueAt(i, 3));
             }
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Error al guardar productos en el archivo.");
+            JOptionPane.showMessageDialog(this, "Error al guardar los productos.");
         }
     }
 
-    // Método para registrar un cobro
-    private void registrarCobro() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Por favor, selecciona un producto para realizar el cobro.");
-            return;
-        }
-
-        String nombreProducto = tableModel.getValueAt(selectedRow, 0).toString();
-        int stockActual = Integer.parseInt(tableModel.getValueAt(selectedRow, 2).toString());
-        double precioProducto = Double.parseDouble(tableModel.getValueAt(selectedRow, 3).toString());
-
-        JTextField clienteField = new JTextField();
-        JTextField cantidadField = new JTextField();
-        String[] metodosPago = {"Efectivo", "Tarjeta"};
-        JComboBox<String> metodoPagoBox = new JComboBox<>(metodosPago);
-
-        JPanel cobroPanel = new JPanel(new GridLayout(4, 2, 10, 10));
-        cobroPanel.add(new JLabel("Nombre del Cliente:"));
-        cobroPanel.add(clienteField);
-        cobroPanel.add(new JLabel("Cantidad:"));
-        cobroPanel.add(cantidadField);
-        cobroPanel.add(new JLabel("Método de Pago:"));
-        cobroPanel.add(metodoPagoBox);
-
-        int result = JOptionPane.showConfirmDialog(this, cobroPanel, "Registrar Cobro - " + nombreProducto, JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.OK_OPTION) {
-            try {
-                String cliente = clienteField.getText();
-                int cantidad = Integer.parseInt(cantidadField.getText());
-                String metodoPago = metodoPagoBox.getSelectedItem().toString();
-
-                if (cantidad > stockActual) {
-                    JOptionPane.showMessageDialog(this, "Error: No hay suficiente stock para la cantidad solicitada.");
-                    return;
-                }
-
-                double montoTotal = cantidad * precioProducto;
-                int nuevoStock = stockActual - cantidad;
-                tableModel.setValueAt(nuevoStock, selectedRow, 2); // Actualizar el stock en la tabla
-                guardarProductos(); // Guardar cambios en archivo
-
-                String registroCobro = "Cliente: " + cliente + ", Producto: " + nombreProducto + ", Cantidad: " + cantidad + ", Monto: €" + montoTotal + ", Método: " + metodoPago;
-                cobrosList.add(registroCobro); // Añadir a la lista de cobros
-                JOptionPane.showMessageDialog(this, "Cobro registrado:\n" + registroCobro);
-
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Error: La cantidad debe ser un número entero.");
+    private void cargarHistorialVentas() {
+        try (Scanner scanner = new Scanner(new File(VENTAS_FILE_PATH))) {
+            while (scanner.hasNextLine()) {
+                cobrosList.add(scanner.nextLine());
             }
+        } catch (FileNotFoundException e) {
+            System.out.println("Archivo de historial de ventas no encontrado.");
+        }
+    }
+
+    private void guardarHistorialVentas() {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(VENTAS_FILE_PATH))) {
+            for (String cobro : cobrosList) {
+                writer.println(cobro);
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error al guardar el historial de ventas.");
         }
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            CannaGrowApp app = new CannaGrowApp();
-            app.setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new CannaGrowApp().setVisible(true));
     }
 }
