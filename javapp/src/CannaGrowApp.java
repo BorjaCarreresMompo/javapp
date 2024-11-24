@@ -255,3 +255,4 @@ public class CannaGrowApp extends JFrame {
         SwingUtilities.invokeLater(() -> new CannaGrowApp().setVisible(true));
     }
 }
+//pendiente arreglar fallos
